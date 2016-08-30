@@ -27,6 +27,7 @@ import org.jsoup.select.Elements;
 public class Bean{
 
 	private Connection conn;
+	private static Integer number = 0; 
 	private static String DOMAIN =  "https://m.douban.com";	
 	private static String BASEURL = DOMAIN + "/group/shanghaizufang/";  		//the website entry
 	Bean(Connection c) {
@@ -39,84 +40,30 @@ public class Bean{
 			String str = getPageHtml(BASEURL);
 			String cate = BASEURL+ "?start="+ String.valueOf(25*i);
 			System.out.println(cate);
-//			try {
-//				Thread.currentThread().sleep(5000);
-//			} catch (InterruptedException e) {
-//				System.out.println("wrong thread "+i);
-//				e.printStackTrace();
-//			}
-			//System.out.println(i+str);
 		}
-//		String str = getPageHtml(BASEURL);
-//		System.out.println(str);
 	}
 	public void getAllUrls(String s){
 		
 		String url = s;
-		if(!dianPingCheck(url)){
-			
-			execGrandParentNodes(url);
-
-		}else{
-			System.out.println("NULL page");
-		}
+		//change this check faster
+//		if(!beanCheck(url)){	
+			execParentNodes(url);
+//		}else{
+//			System.out.println("NULL page");
+//		}
 	}
 	
-	/**
-	 * Helper Function to get page Html
-	 * 
-	 * @param url
-	 * @return
-	 */
-	public String getPageHtml(String url) {
-		String inputLine;
-		String input = "";
-		try {
-			InputStream inStream = httpRequest(url);
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					inStream));
-			// read html into a string
-
-			if ((inputLine = in.readLine()) != null) {
-				input = inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					input = input + inputLine;
-				}
-				// start collect Information
-			} else {
-				// A complete blank page, almost never happen
-				System.out.print(url + " empty");
-			}
-			in.close();
-		} catch (Exception e) {
-			// Auto-generated catch block
-			// e.printStackTrace();
-		}
-		return input;
-	}
-	
-	//绗竴灞傝妭鐐? grandparents @Todo trans2 iteration to be more elegant
-	public void execGrandParentNodes(String url){
-		String html = getPageHtml(url);
-		Document doc = Jsoup.parse(html);
-		Elements cates = doc.select("#classfy a");
-		for(Element cate:cates){
-			String href = cate.attr("href");
-			href = DOMAIN + href;
-		}
-	}
-	//绗簩灞傝妭鐐? parents
+	// grandparents @Todo trans2 iteration to be more elegant
 	public void execParentNodes(String url){
-
 		String html = getPageHtml(url);
 		Document doc = Jsoup.parse(html);
-		Elements cates = doc.select("div.page a");
-		for(Element cate:cates){
-			String href = cate.attr("href");
-			href = DOMAIN + href;
-			execChilds(href);
-		}
+		String  after = doc.select("section.pagination a").last().attr("href");
+		String nextUrl = DOMAIN + BASEURL+ after;
+		number++;
+		System.out.println(number+""+html);
+		execParentNodes(nextUrl);	//get next url
 	}
+
 	
 	//绗笁灞傝妭鐐? childs鑾峰緱鏁版嵁
 	public void execChilds(String url){
@@ -179,22 +126,45 @@ public class Bean{
 		}
 	}
 	
-//	@Todo maybe include
-//	public String getTel(String link) {
-//		String url = link;
-//		String tel = null;
-//		String html = getPageHtml(url);
-//		Document doc = Jsoup.parse(html);
-//		tel = doc.select("p.tel").text();
-//		return tel;
-//	}
+
 
 
 	
-	public boolean dianPingCheck(String url) {
-		return getPageHtml(url).split("errorMessage").length > 1;
+	public boolean beanCheck(String url) {
+		return getPageHtml(url).split("这个页面不在了").length > 1;
 	}
+	
+	/**
+	 * Helper Function to get page Html
+	 * 
+	 * @param url
+	 * @return
+	 */
+	public String getPageHtml(String url) {
+		String inputLine;
+		String input = "";
+		try {
+			InputStream inStream = httpRequest(url);
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					inStream));
 
+			if ((inputLine = in.readLine()) != null) {
+				input = inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					input = input + inputLine;
+				}
+				// start collect Information
+			} else {
+				// A complete blank page, almost never happen
+				System.out.print(url + " empty");
+			}
+			in.close();
+		} catch (Exception e) {
+			// Auto-generated catch block
+			// e.printStackTrace();
+		}
+		return input;
+	}
 	// Helper Method: save data in DB
 	public static void saveData(Connection conn, HashMap<String, String> data,
 			String table) throws SQLException {
