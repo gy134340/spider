@@ -30,42 +30,74 @@ public class Bean{
 	private static Integer number = 0; 
 	private static String DOMAIN =  "https://m.douban.com";	
 	private static String BASEURL = DOMAIN + "/group/shanghaizufang/";  		//the website entry
+	
+	
+	private static String SUBWAY = "13号线";		//地铁线路
+	private static String[] AREAS = {"金运路","金沙江西路","丰庄"};
+	
 	Bean(Connection c) {
 		conn = c;
 	}
 	
 	public void startRun() {
-//		getAllUrls(BASEURL);
-		for(int i=0;i<100;i++){
-			String str = getPageHtml(BASEURL);
-			String cate = BASEURL+ "?start="+ String.valueOf(25*i);
-			System.out.println(cate);
-		}
-	}
-	public void getAllUrls(String s){
 		
-		String url = s;
-		//change this check faster
-//		if(!beanCheck(url)){	
-			execParentNodes(url);
-//		}else{
-//			System.out.println("NULL page");
-//		}
+		execParents(BASEURL);
 	}
 	
-	// grandparents @Todo trans2 iteration to be more elegant
-	public void execParentNodes(String url){
-		String html = getPageHtml(url);
-		Document doc = Jsoup.parse(html);
-		String  after = doc.select("section.pagination a").last().attr("href");
-		String nextUrl = DOMAIN + BASEURL+ after;
-		number++;
-		System.out.println(number+""+html);
-		execParentNodes(nextUrl);	//get next url
+	public void execParents(String s){
+		String url = s;
+		String str = getPageHtml(url);
+		
+		//暂停1s
+		try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace(); 
+        }
+		
+		//判断页面是否存在
+		if(str.indexOf("这个页面不在了") != -1){
+			return;
+		}
+		
+		//找到当前的25条数据进行初步的过滤
+		Document doc = Jsoup.parse(str);
+		Elements eles = doc.select("ul.list.topic-list li");
+		for(Element ele:eles){
+			String text = ele.select("h3").text();
+			String imgSumUrl = ele.select("div.cover img").attr("src");
+			if(isDest(text) == true){
+				System.out.println(text);
+			}
+		}
+		
+		//并获取下一个父页面的链接
+		String nextUrl = BASEURL + doc.select("a.next").attr("href");  //get nextUrl
+		if(nextUrl != null && nextUrl.length() > 0 ){
+			execParents(nextUrl);
+		}
+		
+	}
+	
+	//判断是否有13号线相关信息
+	//@param 传入a便签内html进行初步过滤
+	public boolean isDest(String tt){
+		String text = tt;
+		Boolean flag = false;
+		if(text.indexOf(SUBWAY) != -1){
+			flag = true;
+		}else{
+			for(String area:AREAS){
+				if(text.indexOf(area) != -1 ){
+					flag = true;
+				}else{
+					flag = false;
+				}
+			}
+		}	
+		return flag;
 	}
 
-	
-	//绗笁灞傝妭鐐? childs鑾峰緱鏁版嵁
 	public void execChilds(String url){
 		String html = getPageHtml(url);
 		
@@ -75,42 +107,10 @@ public class Bean{
 		for(Element cate:cates){
 			HashMap<String,String> obj = new HashMap();
 			try {
-			
 				String name = cate.select("div.tit h4").text();
 				String address = cate.select("div.tag-addr .addr").text();
-				String link = DOMAIN + cate.select("div.tit a").attr("href");
-				String sale = cate.select("a.mean-price").text();
-				
-				//@Todo tel闇?瑕佽繘涓?姝ヨ幏鍙栦笅涓?绾tml
-				//String tel = getTel(link);
-				
-				String rate = cate.select("div.comment span").attr("title")+
-								cate.select("div.comment a").first().text()+
-								cate.select("div.comment-list").text();
-				String tags = cate.select("div.tag-addr span.tag").text();
-				String comments = cate.select("div.comment a").first().text();
-				//String comment_link = DOMAIN + cate.select("div.comment a").attr("href");
-				String type =  cate.select("div.tag-addr span.tag").text();
-				//鍥㈣喘鍙婁紭鎯犱俊鎭?
-				Elements promotionCates = cate.select("div.svr-info .si-deal");
-				String promotions = "";
-				for(Element promotionCate:promotionCates){
-					if(promotionCate.attr("class").indexOf("more") != -1){
-						continue;
-					}
-					promotions = promotions+promotionCate.outerHtml();
-				}
-				
 				obj.put("name", name);
-				obj.put("address", address);
-				obj.put("link", link);
-				obj.put("sale", sale);
-				obj.put("rate", rate);
-				obj.put("tags", tags);
-				obj.put("comments", comments);
-				obj.put("type", type);
-				obj.put("promotions",promotions);
-				System.out.println(obj);
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				System.out.println("DianPing miss one O_O");
@@ -126,17 +126,9 @@ public class Bean{
 		}
 	}
 	
-
-
-
-	
-	public boolean beanCheck(String url) {
-		return getPageHtml(url).split("这个页面不在了").length > 1;
-	}
 	
 	/**
 	 * Helper Function to get page Html
-	 * 
 	 * @param url
 	 * @return
 	 */
@@ -199,9 +191,11 @@ public class Bean{
 		URL sampleURL = new URL(url);
 		HttpURLConnection url_con;
 		url_con = (HttpURLConnection) sampleURL.openConnection();
-		url_con.setRequestProperty(
-				"User-Agent",
-				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+//		url_con.setRequestProperty(
+//				"User-Agent",
+//				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+		url_con.setRequestProperty("User-Agent",
+				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
 		url_con.setDoOutput(true);
 		url_con.setRequestMethod("GET");
 
