@@ -45,8 +45,8 @@ public class Bean{
 	}
 	
 	public void execParents(String s){
-		String url = s;
-		String str = getPageHtml(url);
+		
+		String str = getPageHtml(s);
 		
 		//暂停1s
 		try {
@@ -64,15 +64,29 @@ public class Bean{
 		Document doc = Jsoup.parse(str);
 		Elements eles = doc.select("ul.list.topic-list li");
 		for(Element ele:eles){
+			HashMap<String, String> obj =  new HashMap();
 			String text = ele.select("h3").text();
 			String imgSumUrl = ele.select("div.cover img").attr("src");
+			String url = DOMAIN + ele.select("a").attr("href");
+			String date = ele.select("div.info").text();
 			if(isDest(text) == true){
 				System.out.println(text);
+				obj.put("name", text);
+				obj.put("url", url);
+				obj.put("date", date);
+				try {
+					saveData(conn,obj,"bean");
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+					
 			}
 		}
 		
 		//并获取下一个父页面的链接
-		String nextUrl = BASEURL + doc.select("a.next").attr("href");  //get nextUrl
+		String nextUrl = BASEURL + doc.select("section.pagination a.next").attr("href");  //get nextUrl
+		
 		if(nextUrl != null && nextUrl.length() > 0 ){
 			execParents(nextUrl);
 		}
@@ -98,33 +112,35 @@ public class Bean{
 		return flag;
 	}
 
-	public void execChilds(String url){
-		String html = getPageHtml(url);
-		
-		Document doc = Jsoup.parse(html);
-		Elements cates = doc.select("div.shop-list ul li");
-		
-		for(Element cate:cates){
-			HashMap<String,String> obj = new HashMap();
-			try {
-				String name = cate.select("div.tit h4").text();
-				String address = cate.select("div.tag-addr .addr").text();
-				obj.put("name", name);
-				
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				System.out.println("DianPing miss one O_O");
-				e.printStackTrace();
-			}
-
-			try {
-				saveData(conn,obj,"dianping");
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+	
+	
+//	public void execChilds(String url){
+//		String html = getPageHtml(url);
+//		
+//		Document doc = Jsoup.parse(html);
+//		Elements cates = doc.select("div.shop-list ul li");
+//		
+//		for(Element cate:cates){
+//			HashMap<String,String> obj = new HashMap();
+//			try {
+//				String name = cate.select("div.tit h4").text();
+//				String address = cate.select("div.tag-addr .addr").text();
+//				obj.put("name", name);
+//				
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				System.out.println("DianPing miss one O_O");
+//				e.printStackTrace();
+//			}
+//
+//			try {
+//				saveData(conn,obj,"dianping");
+//			} catch (SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 	
 	
 	/**
@@ -195,7 +211,7 @@ public class Bean{
 //				"User-Agent",
 //				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 		url_con.setRequestProperty("User-Agent",
-				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
+				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.366");
 		url_con.setDoOutput(true);
 		url_con.setRequestMethod("GET");
 

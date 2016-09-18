@@ -1,0 +1,43 @@
+@utf8;
+*{
+	margin:0px;
+	padding:0px;
+	font-family: "Microsoft YaHei","Hiragino Sans GB","helvetica";
+	color:#4a4a4a;
+}
+body,html{
+	margin:0px;
+	padding:0px;
+	width:100%;
+	height:100%;
+	max-width:750px;
+	font-family: "Microsoft YaHei","Hiragino Sans GB","helvetica";
+}
+
+input{
+	outline:medium;
+	font-size:24px;
+}
+
+a,ul, li{
+	text-decoration:none;
+	list-style:none;
+	color:inherit;
+}
+
+h1{
+	
+}
+
+h2{
+	font-size:18px;
+}
+
+h3{
+	font-size:14px;
+}
+
+p{
+	font-size:10px;
+	color:#9b9b9b
+}
