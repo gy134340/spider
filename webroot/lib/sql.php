@@ -27,6 +27,23 @@ function select($attr,$table,$where=null){
 	return $r;
 }
 
+//get data length
+function getLength($table){
+	$query  = "select count(*) from ".$table."";
+	$res = mysql_query($query);
+	$r = mysql_fetch_array($res);
+	return $r[0];
+}
+function selectpage($table,$offset,$pagesize){
+	$query = "select * from ".$table." order by id limit ".$offset.",".$pagesize."";
+	$exc = mysql_query($query);
+	$r = array();
+	while($result = mysql_fetch_row($exc)){
+		array_push($r,$result);
+	}
+	//echo json_encode($r);
+	return $r;
+}
 //SQL: insert
 //insert into $table ($array_keys) value ($array_values)
 function insert($table,$array){
