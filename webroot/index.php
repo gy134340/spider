@@ -28,6 +28,12 @@ $res = selectpage('bean',$offset,$pagesize);
 <meta  name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" type="text/css" href="css/reset.css">
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<style type="text/css">
+	.container{
+		padding-top: 100px;
+		padding-bottom: 50px;
+	}
+</style>
 <body>
 <div class="container row">
 <!-- <h1><?php echo $total ?></h1> -->
